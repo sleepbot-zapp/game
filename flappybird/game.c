@@ -1,15 +1,15 @@
 #include "game.h"
 #include <stdio.h>
 
-static Texture2D birdSheets[MAX_VARIANTS];                     // each sprite sheet
-static Rectangle birdFrames[MAX_VARIANTS][FRAMES_PER_VARIANT]; // frame rects
+static Texture2D birdSheets[MAX_VARIANTS];
+static Rectangle birdFrames[MAX_VARIANTS][FRAMES_PER_VARIANT];
 static int g_birdVariant = 0;
 
 Bird InitBird(void) {
     Bird bird;
     bird.rect.x = SCREEN_WIDTH / 4.0f;
     bird.rect.y = SCREEN_HEIGHT / 2.0f;
-    bird.rect.width  = 40;   // draw size (scaled)
+    bird.rect.width  = 40;
     bird.rect.height = 40;
     bird.velocityY = 0.0f;
     bird.frame = 0;
@@ -68,7 +68,7 @@ void UpdateBird(Bird *bird, float dt, float scrollSpeed, float acceleration) {
     }
 
     bird->frameTimer += dt;
-    if (bird->frameTimer >= 0.05f) {   // slower animation (0.1s per frame)
+    if (bird->frameTimer >= 0.05f) {
         bird->frame = (bird->frame + 1) % FRAMES_PER_VARIANT;
         bird->frameTimer = 0.0f;
     }
