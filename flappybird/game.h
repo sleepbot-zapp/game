@@ -47,7 +47,7 @@ typedef struct {
 Bird InitBird(void);
 void LoadBirdAssets(void);
 void UnloadBirdAssets(void);
-void UpdateBird(Bird *bird, float dt, float acceleration);
+void UpdateBird(Bird *bird, float dt, float scrollSpeed,float acceleration);
 void DrawBird(Bird bird);
 
 // Active skin (no global exposed)

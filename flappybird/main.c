@@ -47,7 +47,7 @@ int main(void) {
             }
 
             if (!paused) {
-                UpdateBird(&bird, dt, pipes.acceleration);
+                UpdateBird(&bird, dt, pipes.scrollSpeed,pipes.acceleration);
                 UpdatePipes(&pipes, dt, &bird, &score);
 
                 if (CheckCollision(bird, pipes) ||
