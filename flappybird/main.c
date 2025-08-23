@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <time.h>
 
+
+
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Flappy");
     SetTargetFPS(60);
@@ -20,6 +22,20 @@ int main(void) {
 
     LoadBirdAssets();
     SetActiveBirdVariant(GetRandomValue(0, MAX_VARIANTS - 1));
+
+    Texture2D cloudTexture = LoadTexture("assets/cloud.png");
+    Texture2D groundTexture = LoadTexture("assets/ground.png");
+
+    float groundOffset = 0.0f;
+
+    Cloud clouds[MAX_CLOUDS];
+    for (int i = 0; i < MAX_CLOUDS; i++) {
+        clouds[i].scale = GetRandomValue(4, 8) / 100.0f;
+        clouds[i].position = (Vector2){
+            GetRandomValue(0, SCREEN_WIDTH - (int)(cloudTexture.width * clouds[i].scale)),
+            GetRandomValue(0, SCREEN_HEIGHT/2 - (int)(cloudTexture.height * clouds[i].scale))
+        };
+    }
 
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
@@ -39,13 +55,29 @@ int main(void) {
                 }
             } else {
                 if (IsKeyPressed(KEY_SPACE)) {
-                        paused = false;
+                    paused = false;
                 }
             }
 
             if (!paused) {
-                UpdateBird(&bird, dt, pipes.scrollSpeed,pipes.acceleration);
+                UpdateBird(&bird, dt, pipes.scrollSpeed, pipes.acceleration);
                 UpdatePipes(&pipes, dt, &bird, &score);
+
+                // Move clouds
+                for (int i = 0; i < MAX_CLOUDS; i++) {
+                    clouds[i].position.x -= pipes.scrollSpeed * dt;
+
+                    if (clouds[i].position.x + cloudTexture.width * clouds[i].scale < 0) {
+                        clouds[i].scale = GetRandomValue(4, 8) / 100.0f;
+                        clouds[i].position.x = SCREEN_WIDTH + GetRandomValue(50, 200);
+                        clouds[i].position.y = GetRandomValue(0, SCREEN_HEIGHT/2 - (int)(cloudTexture.height * clouds[i].scale));
+                    }
+                }
+
+                groundOffset -= pipes.scrollSpeed * dt;
+                if (groundOffset <= -groundTexture.width) {
+                    groundOffset += groundTexture.width;
+                }
 
                 if (CheckCollision(bird, pipes) ||
                     bird.rect.y + bird.rect.height >= SCREEN_HEIGHT - GROUND_HEIGHT) {
@@ -57,6 +89,15 @@ int main(void) {
                 SetActiveBirdVariant(GetRandomValue(0, MAX_VARIANTS - 1));
                 bird = InitBird();
                 pipes = InitPipes(100.0f);
+
+                for (int i = 0; i < MAX_CLOUDS; i++) {
+                    clouds[i].scale = GetRandomValue(4, 8) / 100.0f;
+                    clouds[i].position = (Vector2){
+                        GetRandomValue(0, SCREEN_WIDTH - (int)(cloudTexture.width * clouds[i].scale)),
+                        GetRandomValue(0, SCREEN_HEIGHT/2 - (int)(cloudTexture.height * clouds[i].scale))
+                    };
+                }
+
                 score = 0;
                 gameOver = false;
                 gameStarted = true;
@@ -68,7 +109,10 @@ int main(void) {
         ClearBackground(SKYBLUE);
 
         DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - GROUND_HEIGHT, SKYBLUE);
-        DrawRectangle(0, SCREEN_HEIGHT - GROUND_HEIGHT, SCREEN_WIDTH, GROUND_HEIGHT, BROWN);
+
+        for (int i = 0; i < MAX_CLOUDS; i++) {
+            DrawTextureEx(cloudTexture, clouds[i].position, 0.0f, clouds[i].scale, WHITE);
+        }
 
         if (gameStarted) {
             DrawPipes(pipes);
@@ -87,10 +131,28 @@ int main(void) {
             DrawText("Press SPACE to Begin", SCREEN_WIDTH/2 - 110, SCREEN_HEIGHT/2 - 10, 20, BLACK);
         }
 
+        Rectangle src = { 0, 0, (float)groundTexture.width, (float)groundTexture.height };
+
+        for (int x = 0; x <= SCREEN_WIDTH + groundTexture.width; x += groundTexture.width) {
+            Rectangle dest = {
+                groundOffset + x,
+                SCREEN_HEIGHT - (GROUND_HEIGHT + 20),
+                (float)groundTexture.width,
+                (float)(GROUND_HEIGHT + 20)
+            };
+
+            DrawTexturePro(groundTexture, src, dest, (Vector2){0, 0}, 0.0f, WHITE);
+        }
+
+
         EndDrawing();
     }
 
+    // Cleanup
     CloseWindow();
     UnloadBirdAssets();
+    UnloadTexture(cloudTexture);
+    UnloadTexture(groundTexture);
+
     return 0;
 }

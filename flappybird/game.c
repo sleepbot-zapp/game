@@ -23,8 +23,6 @@ void LoadBirdAssets(void) {
     for (int v = 0; v < MAX_VARIANTS; v++) {
         snprintf(filename, sizeof(filename), "assets/bird%d.png", v+1);
         birdSheets[v] = LoadTexture(filename);
-
-        // slice into 4x4 grid
         int cols = 4;
         int rows = 4;
         int frameWidth  = birdSheets[v].width / cols;
@@ -175,15 +173,23 @@ void DrawPipes(PipeManager manager) {
         float x = manager.pipes[i].x;
 
         if (manager.pipes[i].single) {
+            // Top-only pipe
             DrawPipe3D(x, 0, PIPE_WIDTH, manager.pipes[i].height, true);
         } else {
+            // Top pipe
             DrawPipe3D(x, 0, PIPE_WIDTH, manager.pipes[i].height, true);
+
+            // Bottom pipe
             float bottomY = manager.pipes[i].height + PIPE_GAP;
-            float bottomH = SCREEN_HEIGHT - GROUND_HEIGHT - bottomY;
+            float bottomH = (SCREEN_HEIGHT - GROUND_HEIGHT) - bottomY;
+
+            if (bottomH < 0) bottomH = 0; // prevent gap bug
+
             DrawPipe3D(x, bottomY, PIPE_WIDTH, bottomH, false);
         }
     }
 }
+
 
 bool CheckCollision(Bird bird, PipeManager pipes) {
     for (int i = 0; i < MAX_PIPES; i++) {

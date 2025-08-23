@@ -20,6 +20,7 @@
 
 #define MAX_VARIANTS 3
 #define FRAMES_PER_VARIANT 16
+#define MAX_CLOUDS 10
 
 // ----------------- Types -----------------
 typedef struct {
@@ -42,6 +43,11 @@ typedef struct {
     float baseSpeed;
     float acceleration;
 } PipeManager;
+
+typedef struct {
+    Vector2 position;
+    float scale;
+} Cloud;
 
 // ----------------- Bird API -----------------
 Bird InitBird(void);
