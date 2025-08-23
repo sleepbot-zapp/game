@@ -38,11 +38,8 @@ int main(void) {
                     }
                 }
             } else {
-                for (int key = 0; key < 512; key++) {
-                    if (IsKeyPressed(key)) {
+                if (IsKeyPressed(KEY_SPACE)) {
                         paused = false;
-                        break;
-                    }
                 }
             }
 
