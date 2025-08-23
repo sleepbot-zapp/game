@@ -2,44 +2,35 @@
 #define GAME_H
 
 #include "raylib.h"
-#include <stdbool.h>
 
+// ----------------- Config -----------------
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 600
-
-#define VIRTUAL_WIDTH 400
-#define VIRTUAL_HEIGHT 600
-
 #define GROUND_HEIGHT 100
 
-#define BIRD_WIDTH 20
-#define BIRD_HEIGHT 20
-#define GRAVITY 500
-#define FLAP_STRENGTH -200
+#define GRAVITY 900.0f
+#define FLAP_STRENGTH -300.0f
 
-#define PIPE_WIDTH 50
-#define PIPE_GAP 120
-#define PIPE_SPACING 200
+#define PIPE_WIDTH 80
+#define PIPE_GAP 180
+#define PIPE_SPACING 300
 #define MIN_TOP_HEIGHT 50
-#define MAX_PIPES 4
+#define MAX_PIPES 5
 
-typedef struct Bird {
+#define MAX_VARIANTS 3
+#define FRAMES_PER_VARIANT 16
+
+// ----------------- Types -----------------
+typedef struct {
     Rectangle rect;
     float velocityY;
     int frame;
     float frameTimer;
 } Bird;
 
-
-Bird InitBird(void);
-void LoadBirdAssets(void);
-void UnloadBirdAssets(void);
-void UpdateBird(Bird *bird, float dt);
-void DrawBird(Bird bird);
-
 typedef struct {
     float x;
-    float height;
+    int height;
     bool single;
     bool passed;
 } Pipe;
@@ -49,10 +40,21 @@ typedef struct {
     float scrollSpeed;
 } PipeManager;
 
+// ----------------- Bird API -----------------
+Bird InitBird(void);
+void LoadBirdAssets(void);
+void UnloadBirdAssets(void);
+void UpdateBird(Bird *bird, float dt);
+void DrawBird(Bird bird);
+
+// Active skin (no global exposed)
+void SetActiveBirdVariant(int v);   // v in [0..MAX_VARIANTS-1]
+int  GetActiveBirdVariant(void);
+
+// ----------------- Pipes API -----------------
 PipeManager InitPipes(float scrollSpeed);
 void UpdatePipes(PipeManager *manager, float dt, Bird *bird, int *score);
 void DrawPipes(PipeManager manager);
-
 bool CheckCollision(Bird bird, PipeManager pipes);
 
 #endif

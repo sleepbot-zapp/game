@@ -1,10 +1,10 @@
 #include "game.h"
-#include <stdlib.h>
 #include <stdio.h>
 
-Texture2D birdFrames[16];
-int birdFrameCount = 16;
+static Texture2D birdFrames[MAX_VARIANTS][FRAMES_PER_VARIANT];
+static int g_birdVariant = 0; // Active skin (private to this file)
 
+// ------------- Bird -------------
 Bird InitBird(void) {
     Bird bird;
     bird.rect.x = SCREEN_WIDTH / 4.0f;
@@ -19,27 +19,30 @@ Bird InitBird(void) {
 
 void LoadBirdAssets(void) {
     char filename[128];
-    for (int i = 0; i < birdFrameCount; i++) {
-        snprintf(filename, sizeof(filename), "assets/bird_%02d.png", i);
-        birdFrames[i] = LoadTexture(filename);
+    for (int v = 0; v < MAX_VARIANTS; v++) {
+        for (int i = 0; i < FRAMES_PER_VARIANT; i++) {
+            snprintf(filename, sizeof(filename),
+                     "assets/bird%d/bird%d_%02d.png", v+1, v+1, i);
+            birdFrames[v][i] = LoadTexture(filename);
+        }
     }
 }
 
 void UnloadBirdAssets(void) {
-    for (int i = 0; i < birdFrameCount; i++) {
-        UnloadTexture(birdFrames[i]);
+    for (int v = 0; v < MAX_VARIANTS; v++) {
+        for (int i = 0; i < FRAMES_PER_VARIANT; i++) {
+            UnloadTexture(birdFrames[v][i]);
+        }
     }
 }
 
 void UpdateBird(Bird *bird, float dt) {
-    if (IsKeyPressed(KEY_SPACE))
-        bird->velocityY = FLAP_STRENGTH;
+    if (IsKeyPressed(KEY_SPACE)) bird->velocityY = FLAP_STRENGTH;
 
     bird->velocityY += GRAVITY * dt;
     bird->rect.y += bird->velocityY * dt;
 
-    if (bird->rect.y < 0)
-        bird->rect.y = 0;
+    if (bird->rect.y < 0) bird->rect.y = 0;
 
     if (bird->rect.y + bird->rect.height > SCREEN_HEIGHT - GROUND_HEIGHT) {
         bird->rect.y = SCREEN_HEIGHT - GROUND_HEIGHT - bird->rect.height;
@@ -47,14 +50,14 @@ void UpdateBird(Bird *bird, float dt) {
     }
 
     bird->frameTimer += dt;
-    if (bird->frameTimer >= 0.01f) {   
-        bird->frame = (bird->frame + 1) % birdFrameCount;
+    if (bird->frameTimer >= 0.01f) {
+        bird->frame = (bird->frame + 1) % FRAMES_PER_VARIANT;
         bird->frameTimer = 0.0f;
     }
 }
 
 void DrawBird(Bird bird) {
-    Texture2D tex = birdFrames[bird.frame];
+    Texture2D tex = birdFrames[g_birdVariant][bird.frame];
     DrawTexturePro(
         tex,
         (Rectangle){0, 0, tex.width, tex.height},
@@ -65,7 +68,17 @@ void DrawBird(Bird bird) {
     );
 }
 
+void SetActiveBirdVariant(int v) {
+    if (v < 0) v = 0;
+    if (v >= MAX_VARIANTS) v = MAX_VARIANTS - 1;
+    g_birdVariant = v;
+}
 
+int GetActiveBirdVariant(void) {
+    return g_birdVariant;
+}
+
+// ------------- Pipes -------------
 PipeManager InitPipes(float scrollSpeed) {
     PipeManager manager;
     manager.scrollSpeed = scrollSpeed;
@@ -112,8 +125,7 @@ void UpdatePipes(PipeManager *manager, float dt, Bird *bird, int *score) {
     }
 }
 
-static void DrawPipe3D(float x, float y, float w, float h, bool capAtBottom)
-{
+static void DrawPipe3D(float x, float y, float w, float h, bool capAtBottom) {
     Color baseLight = (Color){ 76, 175,  80, 255};
     Color baseDark  = (Color){ 46, 125,  50, 255};
     Color outline   = (Color){ 34,  85,  38, 255};
@@ -136,7 +148,6 @@ static void DrawPipe3D(float x, float y, float w, float h, bool capAtBottom)
     DrawRectangleLines(x, y, w, h, outline);
 }
 
-
 void DrawPipes(PipeManager manager) {
     for (int i = 0; i < MAX_PIPES; i++) {
         float x = manager.pipes[i].x;
@@ -151,7 +162,6 @@ void DrawPipes(PipeManager manager) {
         }
     }
 }
-
 
 bool CheckCollision(Bird bird, PipeManager pipes) {
     for (int i = 0; i < MAX_PIPES; i++) {

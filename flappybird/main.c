@@ -1,35 +1,38 @@
 #include "raylib.h"
 #include "game.h"
 #include <stdio.h>
+#include <time.h>
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Flappy");
     SetTargetFPS(60);
+
+    // Seed RNG so variant changes between runs
+    SetRandomSeed((unsigned int)time(NULL));
 
     Bird bird = InitBird();
     PipeManager pipes = InitPipes(100.0f);
 
     int score = 0;
     bool gameOver = false;
-    bool firstRun = true;    
+    bool firstRun = true;
     bool gameStarted = false;
-    bool paused = false;     
+    bool paused = false;
 
     LoadBirdAssets();
+    SetActiveBirdVariant(GetRandomValue(0, MAX_VARIANTS - 1));
 
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
 
-        
         if (!gameStarted) {
             if (IsKeyPressed(KEY_SPACE)) {
                 gameStarted = true;
-                firstRun = false; 
+                firstRun = false;
             }
         } else if (!gameOver) {
-            
             if (!paused) {
-                for (int key = 0; key < 512; key++) { 
+                for (int key = 0; key < 512; key++) {
                     if (IsKeyPressed(key) && key != KEY_SPACE) {
                         paused = true;
                         break;
@@ -44,7 +47,6 @@ int main(void) {
                 }
             }
 
-            
             if (!paused) {
                 UpdateBird(&bird, dt);
                 UpdatePipes(&pipes, dt, &bird, &score);
@@ -55,18 +57,17 @@ int main(void) {
                 }
             }
         } else {
-            
             if (IsKeyPressed(KEY_SPACE)) {
+                SetActiveBirdVariant(GetRandomValue(0, MAX_VARIANTS - 1));
                 bird = InitBird();
                 pipes = InitPipes(100.0f);
                 score = 0;
                 gameOver = false;
-                gameStarted = true; 
+                gameStarted = true;
                 paused = false;
             }
         }
 
-        
         BeginDrawing();
         ClearBackground(SKYBLUE);
 
