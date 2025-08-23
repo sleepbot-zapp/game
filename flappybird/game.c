@@ -4,7 +4,6 @@
 static Texture2D birdFrames[MAX_VARIANTS][FRAMES_PER_VARIANT];
 static int g_birdVariant = 0; // Active skin (private to this file)
 
-// ------------- Bird -------------
 Bird InitBird(void) {
     Bird bird;
     bird.rect.x = SCREEN_WIDTH / 4.0f;
@@ -36,8 +35,11 @@ void UnloadBirdAssets(void) {
     }
 }
 
-void UpdateBird(Bird *bird, float dt) {
-    if (IsKeyPressed(KEY_SPACE)) bird->velocityY = FLAP_STRENGTH;
+void UpdateBird(Bird *bird, float dt, float scrollSpeed, float acceleration) {
+    if (IsKeyPressed(KEY_SPACE)) {
+        float flap = FLAP_STRENGTH * (1.0f + acceleration / 100.0f);
+        bird->velocityY = flap;
+    }
 
     bird->velocityY += GRAVITY * dt;
     bird->rect.y += bird->velocityY * dt;
@@ -55,6 +57,7 @@ void UpdateBird(Bird *bird, float dt) {
         bird->frameTimer = 0.0f;
     }
 }
+
 
 void DrawBird(Bird bird) {
     Texture2D tex = birdFrames[g_birdVariant][bird.frame];
@@ -78,10 +81,12 @@ int GetActiveBirdVariant(void) {
     return g_birdVariant;
 }
 
-// ------------- Pipes -------------
-PipeManager InitPipes(float scrollSpeed) {
+
+PipeManager InitPipes(float startSpeed) {
     PipeManager manager;
-    manager.scrollSpeed = scrollSpeed;
+    manager.scrollSpeed = startSpeed;
+    manager.baseSpeed = startSpeed;
+    manager.acceleration = 5.0f;
 
     int maxTopHeight = SCREEN_HEIGHT - GROUND_HEIGHT - PIPE_GAP - MIN_TOP_HEIGHT;
 
@@ -91,17 +96,21 @@ PipeManager InitPipes(float scrollSpeed) {
         manager.pipes[i].single = false;
         manager.pipes[i].passed = false;
     }
+
     return manager;
 }
 
 void UpdatePipes(PipeManager *manager, float dt, Bird *bird, int *score) {
+    // accelerate scroll speed over time
+    manager->scrollSpeed += manager->acceleration * dt;
+
     int maxTopHeight = SCREEN_HEIGHT - GROUND_HEIGHT - PIPE_GAP - MIN_TOP_HEIGHT;
 
     for (int i = 0; i < MAX_PIPES; i++) {
         manager->pipes[i].x -= manager->scrollSpeed * dt;
 
-        if (!manager->pipes[i].passed &&
-            manager->pipes[i].x + PIPE_WIDTH < bird->rect.x) {
+        // scoring
+        if (!manager->pipes[i].passed && manager->pipes[i].x + PIPE_WIDTH < bird->rect.x) {
             (*score)++;
             manager->pipes[i].passed = true;
         }
@@ -124,6 +133,7 @@ void UpdatePipes(PipeManager *manager, float dt, Bird *bird, int *score) {
         }
     }
 }
+
 
 static void DrawPipe3D(float x, float y, float w, float h, bool capAtBottom) {
     Color baseLight = (Color){ 76, 175,  80, 255};

@@ -7,7 +7,6 @@ int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Flappy");
     SetTargetFPS(60);
 
-    // Seed RNG so variant changes between runs
     SetRandomSeed((unsigned int)time(NULL));
 
     Bird bird = InitBird();
@@ -48,7 +47,7 @@ int main(void) {
             }
 
             if (!paused) {
-                UpdateBird(&bird, dt);
+                UpdateBird(&bird, dt, pipes.acceleration);
                 UpdatePipes(&pipes, dt, &bird, &score);
 
                 if (CheckCollision(bird, pipes) ||

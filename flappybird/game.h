@@ -2,13 +2,14 @@
 #define GAME_H
 
 #include "raylib.h"
+#include <stdbool.h>
 
 // ----------------- Config -----------------
 #define SCREEN_WIDTH 400
-#define SCREEN_HEIGHT 600
-#define GROUND_HEIGHT 100
+#define SCREEN_HEIGHT 650
+#define GROUND_HEIGHT 50
 
-#define GRAVITY 900.0f
+#define GRAVITY 1350.0f
 #define FLAP_STRENGTH -300.0f
 
 #define PIPE_WIDTH 80
@@ -38,13 +39,15 @@ typedef struct {
 typedef struct {
     Pipe pipes[MAX_PIPES];
     float scrollSpeed;
+    float baseSpeed;
+    float acceleration;
 } PipeManager;
 
 // ----------------- Bird API -----------------
 Bird InitBird(void);
 void LoadBirdAssets(void);
 void UnloadBirdAssets(void);
-void UpdateBird(Bird *bird, float dt);
+void UpdateBird(Bird *bird, float dt, float acceleration);
 void DrawBird(Bird bird);
 
 // Active skin (no global exposed)
@@ -52,7 +55,7 @@ void SetActiveBirdVariant(int v);   // v in [0..MAX_VARIANTS-1]
 int  GetActiveBirdVariant(void);
 
 // ----------------- Pipes API -----------------
-PipeManager InitPipes(float scrollSpeed);
+PipeManager InitPipes(float startSpeed);
 void UpdatePipes(PipeManager *manager, float dt, Bird *bird, int *score);
 void DrawPipes(PipeManager manager);
 bool CheckCollision(Bird bird, PipeManager pipes);
