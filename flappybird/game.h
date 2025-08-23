@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 // ----------------- Config -----------------
-#define SCREEN_WIDTH 400
+#define SCREEN_WIDTH 450
 #define SCREEN_HEIGHT 650
 #define GROUND_HEIGHT 50
 

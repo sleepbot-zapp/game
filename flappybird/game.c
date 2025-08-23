@@ -1,14 +1,15 @@
 #include "game.h"
 #include <stdio.h>
 
-static Texture2D birdFrames[MAX_VARIANTS][FRAMES_PER_VARIANT];
-static int g_birdVariant = 0; // Active skin (private to this file)
+static Texture2D birdSheets[MAX_VARIANTS];                     // each sprite sheet
+static Rectangle birdFrames[MAX_VARIANTS][FRAMES_PER_VARIANT]; // frame rects
+static int g_birdVariant = 0;
 
 Bird InitBird(void) {
     Bird bird;
     bird.rect.x = SCREEN_WIDTH / 4.0f;
     bird.rect.y = SCREEN_HEIGHT / 2.0f;
-    bird.rect.width  = 40;
+    bird.rect.width  = 40;   // draw size (scaled)
     bird.rect.height = 40;
     bird.velocityY = 0.0f;
     bird.frame = 0;
@@ -18,20 +19,35 @@ Bird InitBird(void) {
 
 void LoadBirdAssets(void) {
     char filename[128];
+
     for (int v = 0; v < MAX_VARIANTS; v++) {
-        for (int i = 0; i < FRAMES_PER_VARIANT; i++) {
-            snprintf(filename, sizeof(filename),
-                     "assets/bird%d/bird%d_%02d.png", v+1, v+1, i);
-            birdFrames[v][i] = LoadTexture(filename);
+        snprintf(filename, sizeof(filename), "assets/bird%d.png", v+1);
+        birdSheets[v] = LoadTexture(filename);
+
+        // slice into 4x4 grid
+        int cols = 4;
+        int rows = 4;
+        int frameWidth  = birdSheets[v].width / cols;
+        int frameHeight = birdSheets[v].height / rows;
+
+        int index = 0;
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
+                birdFrames[v][index] = (Rectangle){
+                    .x = x * frameWidth,
+                    .y = y * frameHeight,
+                    .width = frameWidth,
+                    .height = frameHeight
+                };
+                index++;
+            }
         }
     }
 }
 
 void UnloadBirdAssets(void) {
     for (int v = 0; v < MAX_VARIANTS; v++) {
-        for (int i = 0; i < FRAMES_PER_VARIANT; i++) {
-            UnloadTexture(birdFrames[v][i]);
-        }
+        UnloadTexture(birdSheets[v]);
     }
 }
 
@@ -52,23 +68,18 @@ void UpdateBird(Bird *bird, float dt, float scrollSpeed, float acceleration) {
     }
 
     bird->frameTimer += dt;
-    if (bird->frameTimer >= 0.01f) {
+    if (bird->frameTimer >= 0.05f) {   // slower animation (0.1s per frame)
         bird->frame = (bird->frame + 1) % FRAMES_PER_VARIANT;
         bird->frameTimer = 0.0f;
     }
 }
 
-
 void DrawBird(Bird bird) {
-    Texture2D tex = birdFrames[g_birdVariant][bird.frame];
-    DrawTexturePro(
-        tex,
-        (Rectangle){0, 0, tex.width, tex.height},
-        (Rectangle){bird.rect.x, bird.rect.y, bird.rect.width, bird.rect.height},
-        (Vector2){0, 0},
-        0.0f,
-        WHITE
-    );
+    Texture2D sheet = birdSheets[g_birdVariant];
+    Rectangle src = birdFrames[g_birdVariant][bird.frame];
+    Rectangle dest = { bird.rect.x, bird.rect.y, bird.rect.width, bird.rect.height };
+
+    DrawTexturePro(sheet, src, dest, (Vector2){0, 0}, 0.0f, WHITE);
 }
 
 void SetActiveBirdVariant(int v) {
@@ -80,6 +91,7 @@ void SetActiveBirdVariant(int v) {
 int GetActiveBirdVariant(void) {
     return g_birdVariant;
 }
+
 
 
 PipeManager InitPipes(float startSpeed) {
