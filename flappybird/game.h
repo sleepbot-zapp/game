@@ -4,7 +4,6 @@
 #include "raylib.h"
 #include <stdbool.h>
 
-// ----------------- Config -----------------
 #define SCREEN_WIDTH 450
 #define SCREEN_HEIGHT 650
 #define GROUND_HEIGHT 50
@@ -22,7 +21,6 @@
 #define FRAMES_PER_VARIANT 16
 #define MAX_CLOUDS 10
 
-// ----------------- Types -----------------
 typedef struct {
     Rectangle rect;
     float velocityY;
@@ -49,18 +47,15 @@ typedef struct {
     float scale;
 } Cloud;
 
-// ----------------- Bird API -----------------
 Bird InitBird(void);
 void LoadBirdAssets(void);
 void UnloadBirdAssets(void);
 void UpdateBird(Bird *bird, float dt, float scrollSpeed,float acceleration);
 void DrawBird(Bird bird);
 
-// Active skin (no global exposed)
-void SetActiveBirdVariant(int v);   // v in [0..MAX_VARIANTS-1]
+void SetActiveBirdVariant(int v);
 int  GetActiveBirdVariant(void);
 
-// ----------------- Pipes API -----------------
 PipeManager InitPipes(float startSpeed);
 void UpdatePipes(PipeManager *manager, float dt, Bird *bird, int *score);
 void DrawPipes(PipeManager manager);
